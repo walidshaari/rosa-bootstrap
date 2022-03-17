@@ -1,0 +1,233 @@
+# export AWS_ACCOUNT_ID=xxxxxxx
+# export AWS_REGION=xxxxxxx
+# export SOLUTION_NAME=xxxxxxx
+
+# rosa login & init
+# rosa login --token $ROSA_TOKEN
+# rosa init
+# rosa create account-roles
+
+export DEV_MACHINE_CIDR=10.0.0.0/16
+export PROD_MACHINE_CIDR=10.1.0.0/16
+export SERVICE_CIDR=172.30.0.0/16
+export POD_CIDR=10.128.0.0/14
+
+export DEV_CLUSTER_NAME="$SOLUTION_NAME-dev"
+export PROD_CLUSTER_NAME="$SOLUTION_NAME-prod"
+
+echo "dev cluster name:" $DEV_CLUSTER_NAME
+echo "prod cluster name:" $PROD_CLUSTER_NAME
+
+###############################################
+# Create clusters
+###############################################
+rosa create cluster --cluster-name $DEV_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $DEV_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $DEV_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes
+rosa create cluster --cluster-name $PROD_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $PROD_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $PROD_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes
+
+###############################################
+# Wait for clusters to be ready
+###############################################
+while [[ $(rosa describe cluster -c $DEV_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "provisioning dev cluster" && sleep 2; done
+
+# get dev cluster details
+DEV_CLUSTER_HOST=$(rosa describe cluster -c $DEV_CLUSTER_NAME | grep DNS | tr -s ' ' | cut -d ' ' -f 2)
+DEV_CLUSTER_LOGIN=$(rosa create admin -c $DEV_CLUSTER_NAME | grep 'oc login' | tr -s ' ')
+DEV_CLUSTER_LOGIN="$DEV_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
+
+echo $DEV_CLUSTER_LOGIN
+
+# Here we assume the prod cluster will be ready second, it doesn't really matter as long as both clusters are ready eventually
+while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "provisioning prod cluster" && sleep 2; done
+
+# get dev cluster details
+PROD_CLUSTER_HOST=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep DNS | tr -s ' ' | cut -d ' ' -f 2)
+PROD_CLUSTER_LOGIN=$(rosa create admin -c $PROD_CLUSTER_NAME | grep 'oc login' | tr -s ' ')
+PROD_CLUSTER_LOGIN="$PROD_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
+
+echo $PROD_CLUSTER_LOGIN
+
+###############################################
+# Create AWS Resources
+###############################################
+# TODO replace with STS, generate using AWS operators instead
+# create aws iam account for tekton build bot
+aws iam create-user --user-name $SOLUTION_NAME-build-bot --tags Key=prft-cluster,Value=$SOLUTION_NAME
+aws iam create-access-key --user-name $SOLUTION_NAME-build-bot > bot-creds.json
+echo "waiting for key to be active..."
+sleep 10s
+export BUILD_BOT_ACCESS_KEY_ID=$(jq -rj ".AccessKey.AccessKeyId" bot-creds.json)
+export BUILD_BOT_SECRET_ACCESS_KEY=$(jq -rj ".AccessKey.SecretAccessKey" bot-creds.json)
+aws iam create-service-specific-credential --user-name $SOLUTION_NAME-build-bot --service-name codecommit.amazonaws.com > bot-creds.json
+export GIT_BUILD_BOT_USERNAME=$(jq -rj ".ServiceSpecificCredential.ServiceUserName" bot-creds.json)
+export GIT_BUILD_BOT_PASSWORD=$(jq -rj ".ServiceSpecificCredential.ServicePassword" bot-creds.json)
+
+rm -f bot-creds.json
+
+# create aws iam account for argocd cluster-config
+aws iam create-user --user-name $SOLUTION_NAME-cluster-config-puller --tags Key=prft-cluster,Value=$SOLUTION_NAME
+aws iam create-access-key --user-name $SOLUTION_NAME-cluster-config-puller
+aws iam create-service-specific-credential --user-name $SOLUTION_NAME-cluster-config-puller --service-name codecommit.amazonaws.com > config-creds.json
+export CONFIG_REPO_USERNAME=$(jq -rj ".ServiceSpecificCredential.ServiceUserName" config-creds.json)
+export CONFIG_REPO_PASSWORD=$(jq -rj ".ServiceSpecificCredential.ServicePassword" config-creds.json)
+
+rm -f config-creds.json
+
+# create roles for code commit, ECR
+envsubst < iam/cluster-config-puller-policy.json > tmp.yml && mv tmp.yml iam/cluster-config-puller-policy.json
+aws iam put-user-policy --user-name $SOLUTION_NAME-cluster-config-puller --policy-name git-policy --policy-document file://iam/cluster-config-puller-policy.json
+
+envsubst < iam/build-bot-ecr-policy.json > tmp.yml && mv tmp.yml iam/build-bot-ecr-policy.json
+envsubst < iam/build-bot-git-policy.json > tmp.yml && mv tmp.yml iam/build-bot-git-policy.json
+
+aws iam put-user-policy --user-name $SOLUTION_NAME-build-bot --policy-name git-policy --policy-document file://iam/build-bot-git-policy.json
+aws iam put-user-policy --user-name $SOLUTION_NAME-build-bot --policy-name erc-policy --policy-document file://iam/build-bot-ecr-policy.json
+
+# create cluster-config repo
+export CONFIG_REPO_URL=$(aws codecommit create-repository --repository-name $SOLUTION_NAME-cluster-config --tags prft-cluster=$SOLUTION_NAME | jq -rj '.repositoryMetadata.cloneUrlHttp')
+
+# create sample namespace repo
+export GIT_SAMPLE_NS_BASEURL=https://git-codecommit.$AWS_DEFAULT_REGION.amazonaws.com/v1/repos/
+export GIT_SAMPLE_NS_CONFIG_URL=$(aws codecommit create-repository --repository-name $SOLUTION_NAME-sample-ns-config --tags prft-cluster=$SOLUTION_NAME | jq -rj '.repositoryMetadata.cloneUrlHttp')
+
+# create sample app repo
+export GIT_SAMPLE_APP_URL=$(aws codecommit create-repository --repository-name $SOLUTION_NAME-sample-app --tags prft-cluster=$SOLUTION_NAME | jq -rj '.repositoryMetadata.cloneUrlHttp')
+
+# create sample app ecr repo
+aws ecr create-repository --repository-name $SOLUTION_NAME-sample-app --tags Key=prft-cluster,Value=$SOLUTION_NAME
+
+# Registry token will change as soon as the ECR helper is installed to rotate the secret
+export CONTAINER_REGISTRY_HOST=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+export CONTAINER_REGISTRY_USERNAME=AWS
+export CONTAINER_REGISTRY_PASSWORD="autogenerated"
+
+## TODO use sealed secrets!
+
+###############################################
+# Create AWS Resources
+###############################################
+
+# setup aws codecommit creds helper to be able to sign in with proper creds
+git config --global credential.helper '!aws codecommit credential-helper $@'
+git config --global credential.UseHttpPath true
+
+cd repos/config
+
+envsubst < main/resources.yml > tmp.yml && mv tmp.yml main/resources.yml
+envsubst < resources/projects/sample-ns/managed-ns.yml > tmp.yml && mv tmp.yml resources/projects/sample-ns/managed-ns.yml
+
+git init
+git remote add -m master origin $CONFIG_REPO_URL
+git add .
+git commit -m "initial commit"
+git push origin master
+
+cd ..
+
+# seed sample app repo
+cd sample-app
+git init
+git remote add -m master origin $GIT_SAMPLE_APP_URL
+git add .
+git commit -m "initial commit"
+git push origin master
+cd ..
+
+# create SNS topic for push triggers
+SNS_TOPIC=$(aws sns create-topic --name $SOLUTION_NAME-codecommit-notifications --tags Key=prft-cluster,Value=$SOLUTION_NAME | jq -rj '.TopicArn')
+aws codecommit put-repository-triggers --repository-name $SOLUTION_NAME-sample-app --triggers name=push-notification,destinationArn=$SNS_TOPIC,customData=http://el-echo-service-spring-boot-sample-ns.apps.$DEV_CLUSTER_HOST,branches=master,events=updateReference
+
+# seed sample namespace repo
+cd sample-ns
+git init
+
+envsubst < echo-service-spring-boot.yaml > tmp.yml && mv tmp.yml echo-service-spring-boot.yaml
+
+git remote add -m master origin $GIT_SAMPLE_NS_CONFIG_URL
+git add .
+git commit -m "initial commit"
+git push origin master
+git checkout -b prod
+git push origin prod
+cd ..
+
+cd ..
+
+###############################################
+# Bootstrap dev
+###############################################
+# cleanup
+rm -Rf dev
+
+# copy templates
+cp -R gitops dev
+
+# generate env specific manifests
+export CONFIG_REPO_BRANCH=master
+envsubst < dev/argocd-app.yml > tmp.yml && mv tmp.yml dev/argocd-app.yml
+envsubst < dev/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml dev/cluster-config-repo-secret.yml
+
+# IGNITE!!!!
+
+eval $DEV_CLUSTER_LOGIN
+oc create -f dev/gitops-sub.yml
+
+while ! kubectl get ns openshift-gitops 2>/dev/null; do echo "waiting for dev gitops" && sleep 2s; done
+
+oc create -f dev/cluster-config-repo-secret.yml
+oc create -f dev/argocd-app.yml
+
+# wait for sample app deployment config to be ready
+while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo "waiting for dev cluster readiness" && sleep 2s; done
+
+echo  "dev cluster ready!"
+
+###############################################
+# Bootstrap prod
+###############################################
+cd repos/config
+git checkout -b prod
+branch=".spec.config.repoBranch=\"prod\""
+yq e -i $branch resources/projects/sample-ns/managed-ns.yml
+branch=".spec.source.targetRevision=\"prod\""
+yq e -i $branch main/resources.yml
+git commit -am "point sample-ns to prod branch"
+git push origin prod
+cd ../..
+
+# cleanup
+rm -Rf prod
+
+# copy templates
+cp -R gitops prod
+
+# generate env specific manifests
+export CONFIG_REPO_BRANCH=prod
+envsubst < prod/argocd-app.yml > tmp.yml && mv tmp.yml prod/argocd-app.yml
+envsubst < prod/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml prod/cluster-config-repo-secret.yml
+
+# IGNITE!!!!
+
+eval $PROD_CLUSTER_LOGIN
+oc create -f prod/gitops-sub.yml
+
+while ! kubectl get ns openshift-gitops 2>/dev/null; do echo "waiting for prod gitops" && sleep 2s; done
+
+oc create -f prod/cluster-config-repo-secret.yml
+oc create -f prod/argocd-app.yml
+
+# wait for sample app deployment config to be ready
+while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo "waiting for prod cluster readiness" && sleep 2s; done
+
+echo  "prod cluster ready!"
+
+###########################
+#  Start sample app CI/CD #
+###########################
+
+# when ready, subscribe the CI/CD to the SNS Topic created above
+aws sns subscribe --topic-arn $SNS_TOPIC --protocol http --notification-endpoint http://sns-notification-spring-boot-perficient-operators.apps.$DEV_CLUSTER_HOST
+
+# empty commit in app repo to start app ci/cd
+cd repos/sample-app
+git commit --allow-empty -m "trigger build"
+git push origin master

@@ -1,0 +1,46 @@
+apiVersion: apimc.com.perficient/v1alpha1
+kind: ManagedNamespace
+
+metadata:
+  
+  # a name for that object
+  name: sample-ns
+  
+  # the name of the namespace this object will manage
+  namespace: sample-ns
+
+spec:
+
+  aws:
+    accountId: ${AWS_ACCOUNT_ID}
+    region: ${AWS_REGION}
+    secretAccessKey: ${BUILD_BOT_SECRET_ACCESS_KEY}
+    accessKeyId: ${BUILD_BOT_ACCESS_KEY_ID}
+
+  # where my apps and configs for that namespace will reside in git
+  config:
+    repoPath: "."
+    repoUrl: ${GIT_SAMPLE_NS_CONFIG_URL}
+    repoBranch: "master"
+    prodBranch: "prod"
+ 
+  # container registry creds for the pipeline
+  container:
+    password: ${CONTAINER_REGISTRY_PASSWORD}
+    registry: ${CONTAINER_REGISTRY_HOST}
+    username: ${CONTAINER_REGISTRY_USERNAME}
+  
+  fullnameOverride: ""
+  
+  # git repo read/write creds for the tekton pipeline
+  # this is using a dedicated service account limited to that repo
+  git:
+    password: ${GIT_BUILD_BOT_PASSWORD}
+    username: ${GIT_BUILD_BOT_USERNAME}
+    baseurl: ${GIT_SAMPLE_NS_BASEURL}
+  
+  # namespace where the manager is installed (for argocd)  
+  gitops:
+    namespace: openshift-gitops
+  
+  nameOverride: ""

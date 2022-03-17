@@ -1,0 +1,30 @@
+apiVersion: apimc.com.perficient/v1alpha1
+kind: SpringBootApp
+metadata:
+  name: echo-service
+spec:
+  autoscaling:
+    enabled: false
+    maxReplicas: 200
+    minReplicas: 1
+    targetCPUUtilizationPercentage: 80
+  config:
+    repo: ${CLUSTER_NAME}-sample-ns-config
+  container:
+    image: placeholder
+    registry: ${CONTAINER_REGISTRY_HOST}/${CLUSTER_NAME}-sample-app
+  fullnameOverride: ""
+  git:
+    branch: master
+    module: ""
+    url: ${GIT_SAMPLE_APP_URL}
+  maven:
+    mirror: ""
+  nameOverride: ""
+  podAnnotations: {}
+  replicaCount: 2
+  resources: {}
+  service:
+    port: 8080
+  serviceAccount:
+    name: sample-ns-devops-in-a-box-namespace-app-runner

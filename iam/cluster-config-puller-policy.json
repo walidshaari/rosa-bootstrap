@@ -1,0 +1,18 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "codecommit:BatchGet*",
+                "codecommit:BatchDescribe*",
+                "codecommit:Describe*",
+                "codecommit:EvaluatePullRequestApprovalRules",
+                "codecommit:Get*",
+                "codecommit:List*",
+                "codecommit:GitPull"
+            ],
+            "Resource": "arn:aws:codecommit:${AWS_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-cluster-config"
+        }
+    ]
+}

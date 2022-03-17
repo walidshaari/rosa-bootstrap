@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: resources
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    directory:
+      jsonnet: {}
+      recurse: true
+    path: resources
+    repoURL: ${CONFIG_REPO_URL}
+    targetRevision: ${CONFIG_REPO_BRANCH}
+  syncPolicy:
+    automated: {}

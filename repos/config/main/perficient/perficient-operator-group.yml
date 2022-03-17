@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: perficient-operators
+  namespace: perficient-operators
+spec:
+  targetNamespaces:
+    - perficient-operators

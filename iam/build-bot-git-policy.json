@@ -1,0 +1,47 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "codecommit:AssociateApprovalRuleTemplateWithRepository",
+                "codecommit:BatchAssociateApprovalRuleTemplateWithRepositories",
+                "codecommit:BatchDisassociateApprovalRuleTemplateFromRepositories",
+                "codecommit:BatchGet*",
+                "codecommit:BatchDescribe*",
+                "codecommit:Create*",
+                "codecommit:DeleteBranch",
+                "codecommit:DeleteFile",
+                "codecommit:Describe*",
+                "codecommit:DisassociateApprovalRuleTemplateFromRepository",
+                "codecommit:EvaluatePullRequestApprovalRules",
+                "codecommit:Get*",
+                "codecommit:List*",
+                "codecommit:Merge*",
+                "codecommit:OverridePullRequestApprovalRules",
+                "codecommit:Put*",
+                "codecommit:Post*",
+                "codecommit:TagResource",
+                "codecommit:Test*",
+                "codecommit:UntagResource",
+                "codecommit:Update*",
+                "codecommit:GitPull",
+                "codecommit:GitPush"
+            ],
+            "Resource": "arn:aws:codecommit:${AWS_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-sample-ns-config"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "codecommit:BatchGet*",
+                "codecommit:BatchDescribe*",
+                "codecommit:Describe*",
+                "codecommit:EvaluatePullRequestApprovalRules",
+                "codecommit:Get*",
+                "codecommit:List*",
+                "codecommit:GitPull"
+            ],
+            "Resource": "arn:aws:codecommit:${AWS_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-sample-app"
+        }
+    ]
+}
