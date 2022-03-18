@@ -3,9 +3,9 @@
 # export SOLUTION_NAME=xxxxxxx
 
 # rosa login & init
-# rosa login --token $ROSA_TOKEN
-# rosa init
-# rosa create account-roles
+rosa login --token $ROSA_TOKEN
+rosa init
+rosa create account-roles -m auto --yes
 
 export DEV_MACHINE_CIDR=10.0.0.0/16
 export PROD_MACHINE_CIDR=10.1.0.0/16
