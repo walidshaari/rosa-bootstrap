@@ -1,3 +1,5 @@
+#!/bin/bash -xe
+
 # export AWS_ACCOUNT_ID=xxxxxxx
 # export AWS_REGION=xxxxxxx
 # export SOLUTION_NAME=xxxxxxx
