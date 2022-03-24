@@ -15,8 +15,8 @@ export POD_CIDR=10.128.0.0/14
 export DEV_CLUSTER_NAME="$SOLUTION_NAME-dev"
 export PROD_CLUSTER_NAME="$SOLUTION_NAME-prod"
 
-echo "dev cluster name:" $DEV_CLUSTER_NAME
-echo "prod cluster name:" $PROD_CLUSTER_NAME
+echo "FEEDBACK dev cluster name:" $DEV_CLUSTER_NAME
+echo "FEEDBACK prod cluster name:" $PROD_CLUSTER_NAME
 
 ###############################################
 # Create clusters
@@ -34,7 +34,7 @@ DEV_CLUSTER_HOST=$(rosa describe cluster -c $DEV_CLUSTER_NAME | grep DNS | tr -s
 DEV_CLUSTER_LOGIN=$(rosa create admin -c $DEV_CLUSTER_NAME | grep 'oc login' | tr -s ' ')
 DEV_CLUSTER_LOGIN="$DEV_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
 
-echo $DEV_CLUSTER_LOGIN
+echo "FEEDBACK" $DEV_CLUSTER_LOGIN
 
 # Here we assume the prod cluster will be ready second, it doesn't really matter as long as both clusters are ready eventually
 while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "provisioning prod cluster" && sleep 2; done
@@ -44,7 +44,7 @@ PROD_CLUSTER_HOST=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep DNS | tr 
 PROD_CLUSTER_LOGIN=$(rosa create admin -c $PROD_CLUSTER_NAME | grep 'oc login' | tr -s ' ')
 PROD_CLUSTER_LOGIN="$PROD_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
 
-echo $PROD_CLUSTER_LOGIN
+echo "FEEDBACK" $PROD_CLUSTER_LOGIN
 
 ###############################################
 # Create AWS Resources
