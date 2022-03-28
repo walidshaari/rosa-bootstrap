@@ -48,6 +48,8 @@ PROD_CLUSTER_LOGIN="$PROD_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
 
 echo "FEEDBACK" $PROD_CLUSTER_LOGIN
 
+sleep 60s
+
 ###############################################
 # Create AWS Resources
 ###############################################
