@@ -28,7 +28,7 @@
                 "codecommit:GitPull",
                 "codecommit:GitPush"
             ],
-            "Resource": "arn:aws:codecommit:${AWS_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-sample-ns-config"
+            "Resource": "arn:aws:codecommit:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-sample-ns-config"
         },
         {
             "Effect": "Allow",
@@ -41,7 +41,7 @@
                 "codecommit:List*",
                 "codecommit:GitPull"
             ],
-            "Resource": "arn:aws:codecommit:${AWS_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-sample-app"
+            "Resource": "arn:aws:codecommit:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-sample-app"
         }
     ]
 }

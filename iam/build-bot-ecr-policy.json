@@ -21,7 +21,7 @@
                 "ecr:CompleteLayerUpload",
                 "ecr:PutImage"
             ],
-            "Resource": "arn:aws:ecr:${AWS_REGION}:${AWS_ACCOUNT_ID}:repository/${SOLUTION_NAME}-sample-app"
+            "Resource": "arn:aws:ecr:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:repository/${SOLUTION_NAME}-sample-app"
         },
         {
             "Effect": "Allow",

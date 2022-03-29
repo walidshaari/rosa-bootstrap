@@ -12,7 +12,7 @@
                 "codecommit:List*",
                 "codecommit:GitPull"
             ],
-            "Resource": "arn:aws:codecommit:${AWS_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-cluster-config"
+            "Resource": "arn:aws:codecommit:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:${SOLUTION_NAME}-cluster-config"
         }
     ]
 }

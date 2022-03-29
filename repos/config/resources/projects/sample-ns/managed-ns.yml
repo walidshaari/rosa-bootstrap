@@ -13,7 +13,7 @@ spec:
 
   aws:
     accountId: ${AWS_ACCOUNT_ID}
-    region: ${AWS_REGION}
+    region: ${AWS_DEFAULT_REGION}
     secretAccessKey: ${BUILD_BOT_SECRET_ACCESS_KEY}
     accessKeyId: ${BUILD_BOT_ACCESS_KEY_ID}
 
