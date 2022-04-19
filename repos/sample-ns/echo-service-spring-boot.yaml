@@ -9,10 +9,10 @@ spec:
     minReplicas: 1
     targetCPUUtilizationPercentage: 80
   config:
-    repo: ${CLUSTER_NAME}-sample-ns-config
+    repo: ${SOLUTION_NAME}-sample-ns-config
   container:
     image: placeholder
-    registry: ${CONTAINER_REGISTRY_HOST}/${CLUSTER_NAME}-sample-app
+    registry: ${CONTAINER_REGISTRY_HOST}/${SOLUTION_NAME}-sample-app
   fullnameOverride: ""
   git:
     branch: master
