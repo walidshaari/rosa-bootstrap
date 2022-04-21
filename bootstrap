@@ -23,8 +23,8 @@ echo "INFO prod cluster name:" $PROD_CLUSTER_NAME
 ###############################################
 # Create clusters
 ###############################################
-rosa create cluster --cluster-name $DEV_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $DEV_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $DEV_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes
-rosa create cluster --cluster-name $PROD_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $PROD_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $PROD_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes
+rosa create cluster --cluster-name $DEV_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $DEV_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $DEV_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes --version 4.9.28
+rosa create cluster --cluster-name $PROD_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $PROD_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $PROD_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes --version 4.9.28
 
 ###############################################
 # Wait for clusters to be ready
@@ -54,7 +54,7 @@ PROD_CLUSTER_LOGIN="$PROD_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
 echo "INFO" $PROD_CLUSTER_CONSOLE
 echo "INFO" $PROD_CLUSTER_LOGIN
 
-sleep 60s
+sleep 120s
 
 ###############################################
 # Create AWS Resources
