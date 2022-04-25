@@ -32,6 +32,8 @@ rosa create cluster --cluster-name $PROD_CLUSTER_NAME --sts --role-arn arn:aws:i
 echo -n "Provisioning dev cluster"
 while [[ $(rosa describe cluster -c $DEV_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo -n " ." && sleep 2; done
 
+echo ""
+
 # get dev cluster details
 DEV_CLUSTER_HOST=$(rosa describe cluster -c $DEV_CLUSTER_NAME | grep DNS | tr -s ' ' | cut -d ' ' -f 2)
 DEV_CLUSTER_CONSOLE=$(rosa describe cluster -c $DEV_CLUSTER_NAME | grep Console | tr -s ' ')
@@ -44,6 +46,8 @@ echo "INFO" $DEV_CLUSTER_LOGIN
 # Here we assume the prod cluster will be ready second, it doesn't really matter as long as both clusters are ready eventually
 echo -n "provisioning prod cluster"
 while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo -n " ." && sleep 2; done
+
+echo ""
 
 # get dev cluster details
 PROD_CLUSTER_HOST=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep DNS | tr -s ' ' | cut -d ' ' -f 2)
@@ -184,12 +188,16 @@ oc create -f dev/gitops-sub.yml
 echo -n "waiting for dev gitops"
 while ! kubectl get ns openshift-gitops 2>/dev/null; do echo -n " ." && sleep 2s; done
 
+echo ""
+
 oc create -f dev/cluster-config-repo-secret.yml
 oc create -f dev/argocd-app.yml
 
 # wait for sample app deployment config to be ready
 echo -n "waiting for dev cluster readiness"
 while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo -n " ." && sleep 2s; done
+
+echo ""
 
 echo  "dev cluster ready!"
 
@@ -231,6 +239,8 @@ oc create -f prod/argocd-app.yml
 # wait for sample app deployment config to be ready
 echo -n "waiting for prod cluster readiness"
 while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo -n " ." && sleep 2s; done
+
+echo ""
 
 echo  "prod cluster ready!"
 
