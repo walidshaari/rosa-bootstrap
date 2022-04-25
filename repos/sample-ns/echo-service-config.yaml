@@ -5,4 +5,4 @@ metadata:
 data:
   application.properties: |
     logging.level.org.springframework.web=DEBUG
-    spring.zipkin.baseUrl=http://zipkin-slim.devopsinabox-system.svc:9411
+    spring.zipkin.baseUrl=http://jaeger-all-in-one-inmemory-collector.perficient-operators.svc:9411
