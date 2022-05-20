@@ -12,7 +12,7 @@ public class HelloController {
 	@GetMapping("/echo")
 	public String echo(@RequestParam String message) {
 		
-		return message + "-fake-prod";
+		return message;
 	}
 	
 	@GetMapping("/error")

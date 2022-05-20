@@ -48,12 +48,6 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 		
-		<!-- Enable Spring Cloud Kubernetes for dynamic config loading  -->
-		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
-		</dependency>
-		
 		<!-- Turn on JSON logging to enable structured logs and log analysis -->
 		<dependency>
 			<groupId>net.logstash.logback</groupId>
