@@ -9,6 +9,9 @@ rosa login --token $ROSA_TOKEN
 rosa init
 rosa create account-roles -m auto --yes
 
+# wait for STS roles to be ready
+sleep 30s
+
 export DEV_MACHINE_CIDR=10.0.0.0/16
 export PROD_MACHINE_CIDR=10.1.0.0/16
 export SERVICE_CIDR=172.30.0.0/16
