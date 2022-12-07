@@ -32,8 +32,8 @@ rosa create cluster --cluster-name $DEV_CLUSTER_NAME --sts --role-arn arn:aws:ia
 ###############################################
 # Wait for clusters to be ready
 ###############################################
-echo -n "Provisioning dev cluster"
-while [[ $(rosa describe cluster -c $DEV_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo -n " ." && sleep 2; done
+echo "Provisioning dev cluster"
+while [[ $(rosa describe cluster -c $DEV_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "Waiting for dev to be ready" && sleep 30; done
 
 echo ""
 
@@ -47,8 +47,8 @@ echo "INFO" $DEV_CLUSTER_CONSOLE
 echo "INFO" $DEV_CLUSTER_LOGIN
 
 # Here we assume the prod cluster will be ready second, it doesn't really matter as long as both clusters are ready eventually
-# echo -n "provisioning prod cluster"
-# while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo -n " ." && sleep 2; done
+# echo "Provisioning prod cluster"
+# while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "Waiting for prod to be ready" && sleep 30; done
 
 # echo ""
 
