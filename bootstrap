@@ -224,7 +224,7 @@ echo  "dev cluster ready!"
 # generate env specific manifests
 # export CONFIG_REPO_BRANCH=prod
 # envsubst < prod/argocd-app.yml > tmp.yml && mv tmp.yml prod/argocd-app.yml
-envsubst < prod/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml prod/cluster-config-repo-secret.yml
+# envsubst < prod/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml prod/cluster-config-repo-secret.yml
 
 # IGNITE!!!!
 
