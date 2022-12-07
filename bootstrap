@@ -13,21 +13,21 @@ rosa create account-roles -m auto --yes
 sleep 30s
 
 export DEV_MACHINE_CIDR=10.0.0.0/16
-export PROD_MACHINE_CIDR=10.1.0.0/16
+# export PROD_MACHINE_CIDR=10.1.0.0/16
 export SERVICE_CIDR=172.30.0.0/16
 export POD_CIDR=10.128.0.0/14
 
 export DEV_CLUSTER_NAME="$SOLUTION_NAME-dev"
-export PROD_CLUSTER_NAME="$SOLUTION_NAME-prod"
+# export PROD_CLUSTER_NAME="$SOLUTION_NAME-prod"
 
 echo "INFO dev cluster name:" $DEV_CLUSTER_NAME
-echo "INFO prod cluster name:" $PROD_CLUSTER_NAME
+# echo "INFO prod cluster name:" $PROD_CLUSTER_NAME
 
 ###############################################
 # Create clusters
 ###############################################
 rosa create cluster --cluster-name $DEV_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $DEV_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $DEV_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes --version 4.9.28
-rosa create cluster --cluster-name $PROD_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $PROD_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $PROD_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes --version 4.9.28
+# rosa create cluster --cluster-name $PROD_CLUSTER_NAME --sts --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Installer-Role --support-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Support-Role --controlplane-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-ControlPlane-Role --worker-iam-role arn:aws:iam::$AWS_ACCOUNT_ID:role/ManagedOpenShift-Worker-Role --operator-roles-prefix $PROD_CLUSTER_NAME --multi-az --region $AWS_DEFAULT_REGION --version 4.10.3 --enable-autoscaling --min-replicas 3 --max-replicas 6 --machine-cidr $PROD_MACHINE_CIDR --service-cidr $SERVICE_CIDR --pod-cidr $POD_CIDR --host-prefix 23 -m auto --yes --version 4.9.28
 
 ###############################################
 # Wait for clusters to be ready
@@ -47,19 +47,19 @@ echo "INFO" $DEV_CLUSTER_CONSOLE
 echo "INFO" $DEV_CLUSTER_LOGIN
 
 # Here we assume the prod cluster will be ready second, it doesn't really matter as long as both clusters are ready eventually
-echo -n "provisioning prod cluster"
-while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo -n " ." && sleep 2; done
+# echo -n "provisioning prod cluster"
+# while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo -n " ." && sleep 2; done
 
-echo ""
+# echo ""
 
 # get dev cluster details
-PROD_CLUSTER_HOST=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep DNS | tr -s ' ' | cut -d ' ' -f 2)
-PROD_CLUSTER_CONSOLE=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep Console | tr -s ' ')
-PROD_CLUSTER_LOGIN=$(rosa create admin -c $PROD_CLUSTER_NAME | grep 'oc login' | tr -s ' ')
-PROD_CLUSTER_LOGIN="$PROD_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
+# PROD_CLUSTER_HOST=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep DNS | tr -s ' ' | cut -d ' ' -f 2)
+# PROD_CLUSTER_CONSOLE=$(rosa describe cluster -c $PROD_CLUSTER_NAME | grep Console | tr -s ' ')
+# PROD_CLUSTER_LOGIN=$(rosa create admin -c $PROD_CLUSTER_NAME | grep 'oc login' | tr -s ' ')
+# PROD_CLUSTER_LOGIN="$PROD_CLUSTER_LOGIN --insecure-skip-tls-verify=true"
 
-echo "INFO" $PROD_CLUSTER_CONSOLE
-echo "INFO" $PROD_CLUSTER_LOGIN
+# echo "INFO" $PROD_CLUSTER_CONSOLE
+# echo "INFO" $PROD_CLUSTER_LOGIN
 
 sleep 120s
 
@@ -207,45 +207,45 @@ echo  "dev cluster ready!"
 ###############################################
 # Bootstrap prod
 ###############################################
-cd repos/config
-git checkout -b prod
-branch=".spec.config.repoBranch=\"prod\""
-yq e -i $branch resources/projects/sample-ns/managed-ns.yml
-branch=".spec.source.targetRevision=\"prod\""
-yq e -i $branch main/resources.yml
-git commit -am "point sample-ns to prod branch"
-git push origin prod
-cd ../..
+# cd repos/config
+# git checkout -b prod
+# branch=".spec.config.repoBranch=\"prod\""
+# yq e -i $branch resources/projects/sample-ns/managed-ns.yml
+# branch=".spec.source.targetRevision=\"prod\""
+# yq e -i $branch main/resources.yml
+# git commit -am "point sample-ns to prod branch"
+# git push origin prod
+# cd ../..
 
 # cleanup
-rm -Rf prod
+# rm -Rf prod
 
 # copy templates
-cp -R gitops prod
+# cp -R gitops prod
 
 # generate env specific manifests
-export CONFIG_REPO_BRANCH=prod
-envsubst < prod/argocd-app.yml > tmp.yml && mv tmp.yml prod/argocd-app.yml
+# export CONFIG_REPO_BRANCH=prod
+# envsubst < prod/argocd-app.yml > tmp.yml && mv tmp.yml prod/argocd-app.yml
 envsubst < prod/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml prod/cluster-config-repo-secret.yml
 
 # IGNITE!!!!
 
-eval $PROD_CLUSTER_LOGIN
-oc create -f prod/gitops-sub.yml
+# eval $PROD_CLUSTER_LOGIN
+# oc create -f prod/gitops-sub.yml
 
-echo -n "waiting for prod gitops"
-while ! kubectl get ns openshift-gitops 2>/dev/null; do echo -n " ." && sleep 2s; done
+# echo -n "waiting for prod gitops"
+# while ! kubectl get ns openshift-gitops 2>/dev/null; do echo -n " ." && sleep 2s; done
 
-oc create -f prod/cluster-config-repo-secret.yml
-oc create -f prod/argocd-app.yml
+# oc create -f prod/cluster-config-repo-secret.yml
+# oc create -f prod/argocd-app.yml
 
 # wait for sample app deployment config to be ready
-echo -n "waiting for prod cluster readiness"
-while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo -n " ." && sleep 2s; done
+# echo -n "waiting for prod cluster readiness"
+# while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo -n " ." && sleep 2s; done
 
-echo ""
+# echo ""
 
-echo  "prod cluster ready!"
+# echo  "prod cluster ready!"
 
 ###########################
 #  Start sample app CI/CD #
