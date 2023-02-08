@@ -1,0 +1,7 @@
+kind: Jaeger
+apiVersion: jaegertracing.io/v1
+metadata:
+  name: jaeger-all-in-one-inmemory
+  namespace: perficient-operators
+spec:
+  strategy: allInOne

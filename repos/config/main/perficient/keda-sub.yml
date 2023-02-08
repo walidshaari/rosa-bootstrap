@@ -1,0 +1,14 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+    operators.coreos.com/keda.keda: ''
+  name: keda
+  namespace: keda
+spec:
+  channel: alpha
+  installPlanApproval: Automatic
+  name: keda
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: keda.v2.7.1
