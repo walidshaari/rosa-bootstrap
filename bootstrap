@@ -33,7 +33,7 @@ rosa create cluster --cluster-name $DEV_CLUSTER_NAME --sts --role-arn arn:aws:ia
 # Wait for clusters to be ready
 ###############################################
 echo "Provisioning dev cluster"
-while [[ $(rosa describe cluster -c $DEV_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "Waiting for dev to be ready" && sleep 30; done
+while [[ $(rosa describe cluster -c $DEV_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "Waiting for dev to be ready" && sleep 60; done
 
 echo ""
 
@@ -48,7 +48,7 @@ echo "INFO" $DEV_CLUSTER_LOGIN
 
 # Here we assume the prod cluster will be ready second, it doesn't really matter as long as both clusters are ready eventually
 # echo "Provisioning prod cluster"
-# while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "Waiting for prod to be ready" && sleep 30; done
+# while [[ $(rosa describe cluster -c $PROD_CLUSTER_NAME | grep 'State:' | tr -s ' ' | cut -d ' ' -f 2) != 'ready' ]]; do echo "Waiting for prod to be ready" && sleep 60; done
 
 # echo ""
 
@@ -61,7 +61,7 @@ echo "INFO" $DEV_CLUSTER_LOGIN
 # echo "INFO" $PROD_CLUSTER_CONSOLE
 # echo "INFO" $PROD_CLUSTER_LOGIN
 
-sleep 120s
+sleep 3m
 
 ###############################################
 # Create AWS Resources
@@ -71,7 +71,7 @@ sleep 120s
 aws iam create-user --user-name $SOLUTION_NAME-build-bot --tags Key=prft-cluster,Value=$SOLUTION_NAME
 aws iam create-access-key --user-name $SOLUTION_NAME-build-bot > bot-creds.json
 echo "waiting for key to be active..."
-sleep 10s
+sleep 30s
 export BUILD_BOT_ACCESS_KEY_ID=$(jq -rj ".AccessKey.AccessKeyId" bot-creds.json)
 export BUILD_BOT_SECRET_ACCESS_KEY=$(jq -rj ".AccessKey.SecretAccessKey" bot-creds.json)
 aws iam create-service-specific-credential --user-name $SOLUTION_NAME-build-bot --service-name codecommit.amazonaws.com > bot-creds.json
@@ -188,7 +188,7 @@ envsubst < dev/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml dev/cluste
 eval $DEV_CLUSTER_LOGIN
 oc create -f dev/gitops-sub.yml
 
-while ! kubectl get ns openshift-gitops 2>/dev/null; do echo "Waiting for dev gitops" && sleep 30s; done
+while ! kubectl get ns openshift-gitops 2>/dev/null; do echo "Waiting for dev gitops" && sleep 40s; done
 
 echo ""
 
@@ -196,7 +196,7 @@ oc create -f dev/cluster-config-repo-secret.yml
 oc create -f dev/argocd-app.yml
 
 # wait for sample app deployment config to be ready
-while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo "Bootstrapping dev" && sleep 2s; done
+while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo "Bootstrapping dev" && sleep 5s; done
 
 echo ""
 
@@ -231,13 +231,13 @@ echo  "dev cluster ready!"
 # eval $PROD_CLUSTER_LOGIN
 # oc create -f prod/gitops-sub.yml
 
-# while ! kubectl get ns openshift-gitops 2>/dev/null; do echo "Waiting for prod gitops" && sleep 2s; done
+# while ! kubectl get ns openshift-gitops 2>/dev/null; do echo "Waiting for prod gitops" && sleep 5s; done
 
 # oc create -f prod/cluster-config-repo-secret.yml
 # oc create -f prod/argocd-app.yml
 
 # wait for sample app deployment config to be ready
-# while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo "Bootstrapping prod" && sleep 2s; done
+# while ! kubectl get dc echo-service-spring-boot -n sample-ns 2>/dev/null; do echo "Bootstrapping prod" && sleep 5s; done
 
 # echo ""
 
