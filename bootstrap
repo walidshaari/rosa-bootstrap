@@ -133,25 +133,25 @@ envsubst < main/resources.yml > tmp.yml && mv tmp.yml main/resources.yml
 envsubst < resources/projects/sample-ns/managed-ns.yml > tmp.yml && mv tmp.yml resources/projects/sample-ns/managed-ns.yml
 
 git init
-git remote add -m master origin $CONFIG_REPO_URL
+git remote add -m main origin $CONFIG_REPO_URL
 git add .
 git commit -m "initial commit"
-git push origin master
+git push origin main
 
 cd ..
 
 # seed sample app repo
 cd sample-app
 git init
-git remote add -m master origin $GIT_SAMPLE_APP_URL
+git remote add -m main origin $GIT_SAMPLE_APP_URL
 git add .
 git commit -m "initial commit"
-git push origin master
+git push origin main
 cd ..
 
 # create SNS topic for push triggers
 SNS_TOPIC=$(aws sns create-topic --name $SOLUTION_NAME-codecommit-notifications --tags Key=prft-cluster,Value=$SOLUTION_NAME | jq -rj '.TopicArn')
-aws codecommit put-repository-triggers --repository-name $SOLUTION_NAME-sample-app --triggers name=push-notification,destinationArn=$SNS_TOPIC,customData=http://el-echo-service-spring-boot-sample-ns.apps.$DEV_CLUSTER_HOST,branches=master,events=updateReference
+aws codecommit put-repository-triggers --repository-name $SOLUTION_NAME-sample-app --triggers name=push-notification,destinationArn=$SNS_TOPIC,customData=http://el-echo-service-spring-boot-sample-ns.apps.$DEV_CLUSTER_HOST,branches=main,events=updateReference
 
 # seed sample namespace repo
 cd sample-ns
@@ -159,10 +159,10 @@ git init
 
 envsubst < echo-service-spring-boot.yaml > tmp.yml && mv tmp.yml echo-service-spring-boot.yaml
 
-git remote add -m master origin $GIT_SAMPLE_NS_CONFIG_URL
+git remote add -m main origin $GIT_SAMPLE_NS_CONFIG_URL
 git add .
 git commit -m "initial commit"
-git push origin master
+git push origin main
 git checkout -b prod
 git push origin prod
 cd ..
@@ -179,7 +179,7 @@ rm -Rf dev
 cp -R gitops dev
 
 # generate env specific manifests
-export CONFIG_REPO_BRANCH=master
+export CONFIG_REPO_BRANCH=main
 envsubst < dev/argocd-app.yml > tmp.yml && mv tmp.yml dev/argocd-app.yml
 envsubst < dev/cluster-config-repo-secret.yml > tmp.yml && mv tmp.yml dev/cluster-config-repo-secret.yml
 
@@ -253,4 +253,4 @@ aws sns subscribe --topic-arn $SNS_TOPIC --protocol http --notification-endpoint
 # empty commit in app repo to start app ci/cd
 cd repos/sample-app
 git commit --allow-empty -m "trigger build"
-git push origin master
+git push origin main
