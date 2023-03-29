@@ -21,7 +21,7 @@ spec:
   config:
     repoPath: "."
     repoUrl: ${GIT_SAMPLE_NS_CONFIG_URL}
-    repoBranch: "master"
+    repoBranch: "main"
     prodBranch: "prod"
  
   # container registry creds for the pipeline
